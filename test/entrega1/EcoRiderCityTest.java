@@ -157,51 +157,33 @@ public class EcoRiderCityTest {
         assertEquals(1, ocupados.size());
         assertEquals("P002", ocupados.get(0).getId());
     }
-    
-    //SETTERS*************************************************************
-    @Test
-    public void testSetFianzaValida() {
-        city.setFianza(25.0);
-        assertEquals(25.0, city.getFianza(), 0.001);
-    }
-
-<<<<<<< HEAD
-	private EcoRiderCity city;
-    private EcoRiderParking parking1;
-    private EcoRiderParking parking2;
-    private TarjetaMonedero tarjeta;
-    private Gps gps;
-
-    @Before
-    public void setUp() {
-        gps = new Gps(32.564, -18.70);
-        city = new EcoRiderCity("Valladolid", 20.0);
-        parking1 = new EcoRiderParking("P001", "Parking Centro", "Calle Central 12", gps, 10, 2);
-        parking2 = new EcoRiderParking("P002", "Parking Norte", "Calle Nueva 5", gps, 5, 3);
-        tarjeta = new TarjetaMonedero("A156Bv09_1zXo894", 100.0);
-	}
 
 	@Test
 	public void testGetParkingsConPlazaInoperativa() {
-		city.anadirParking(parking1);
-		city.anadirParking(parking2);
-		parking1.setPlazaInoperativa(2);
-		assertEquals(1, city.getParkingsConPlazaInoperativa().size());
-		assertTrue(city.getParkingsConPlazaInoperativa().contains(parking1));
-		assertFalse(city.getParkingsConPlazaInoperativa().contains(parking2));
+		parking1.alquilarVehiculoEnPlaza(0, tarjeta, 10.0);
+        parking1.setPlazaInoperativa(0);
+        
+        city.anadirParking(parking1);
+        city.anadirParking(parking2);
+        
+        ArrayList<EcoRiderParking> conInoperativas = city.getParkingsConPlazaInoperativa();
+        
+        assertEquals(1, conInoperativas.size());
+        assertEquals("P001", conInoperativas.get(0).getId());
 	}
 
 	@Test
 	public void testGetParkingsCercanos(){
-		city.anadirParking(parking1);
-		city.anadirParking(parking2);
-		EcoRiderParking parking3 = new EcoRiderParking("P003", "Parking Sur", "Calle Baja 8", new Gps(32.566, -18.706), 8, 1);
-		city.anadirParking(parking3);
-		Gps ubicacionUsuario = new Gps(32.565, -18.705);
-		// 1 km
-		assertFalse(city.getParkingsCercanos(ubicacionUsuario, 1000).contains(parking1));
-		assertFalse(city.getParkingsCercanos(ubicacionUsuario, 1000).contains(parking2));
-		assertTrue(city.getParkingsCercanos(ubicacionUsuario, 1000).contains(parking3));
+		Gps gpsCercano = new Gps(32.5641, -18.70);
+        parking1.alquilarVehiculoEnPlaza(0, tarjeta, 10.0);
+        
+        city.anadirParking(parking1);
+        city.anadirParking(parking2);
+        
+        ArrayList<EcoRiderParking> cercanos = city.getParkingsCercanos(gpsCercano, 1000);
+        
+        assertEquals(1, cercanos.size());
+        assertEquals("P001", cercanos.get(0).getId());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -210,20 +192,156 @@ public class EcoRiderCityTest {
 		city.getParkingsCercanos(ubicacionUsuario, 1000);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetParkingsCercanosRadio0() {
-		
-		city.getParkingsCercanos(new Gps(32.565, -18.705), 0);
-	}
-
-
-
-
-=======
     @Test(expected = IllegalArgumentException.class)
     public void testSetFianzaNegativa() {
         city.setFianza(-10.0);
     }
     //********************************************************************
->>>>>>> 53eff5a30814cae3b4603686217e77a638b36664
+
+    //AlquilarVehiculoEnParking***************************************
+    @Test
+    public void testAlquilarVehiculoEnParking() {
+        city.anadirParking(parking1);
+        double saldoInicial = tarjeta.getSaldoActual();
+        
+        city.alquilarVehiculoEnParking("P001", 0, tarjeta);
+        
+        assertEquals(EcoRiderPlace.Estado.DISPONIBLE, parking1.getEstadoPlaza(0));
+        assertEquals(saldoInicial - city.getFianza(), tarjeta.getSaldoActual(), 0.001);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testAlquilarVehiculoEnParkingNoExiste() {
+        city.alquilarVehiculoEnParking("P999", 0, tarjeta);
+    }
+    
+    @Test
+    public void testDevolverVehiculoEnParking() {
+        city.anadirParking(parking1);
+        city.alquilarVehiculoEnParking("P001", 0, tarjeta);
+        
+        double saldoInicial = tarjeta.getSaldoActual();
+        city.devolverVehiculoEnParking("P001", 0, tarjeta);
+        
+        assertEquals(EcoRiderPlace.Estado.OCUPADA, parking1.getEstadoPlaza(0));
+        assertEquals(saldoInicial + city.getFianza(), tarjeta.getSaldoActual(), 0.001);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testDevolverVehiculoEnParkingNoExiste() {
+        city.devolverVehiculoEnParking("P003", 0, tarjeta);
+    }
+    
+    @Test
+    public void testReservarPlazaEnParking() {
+        city.anadirParking(parking1);
+        city.alquilarVehiculoEnParking("P001", 0, tarjeta);
+        
+        city.reservarPlazaEnParking("P001", 0);
+        
+        assertEquals(EcoRiderPlace.Estado.RESERVADA, parking1.getEstadoPlaza(0));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testReservarPlazaEnParkingNoExiste() {
+        city.reservarPlazaEnParking("P003", 0);
+    }
+    
+    //SETTERS*************************************************************
+    @Test
+    public void testSetFianzaValida() {
+    	city.setFianza(25.0);
+    	assertEquals(25.0, city.getFianza(), 0.001);
+    }
+    
+    @Test
+    public void testSetPlazaInoperativaEnParking() {
+        city.anadirParking(parking1);
+        city.alquilarVehiculoEnParking("P001", 0, tarjeta);
+        
+        city.setPlazaInoperativaEnParking("P001", 0);
+        
+        assertEquals(EcoRiderPlace.Estado.INOPERATIVA, parking1.getEstadoPlaza(0));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testSetPlazaInoperativaEnParkingNoExiste() {
+        city.setPlazaInoperativaEnParking("P003", 0);
+    }
+    
+    @Test
+    public void testSetPlazaOperativaEnParking() {
+        city.anadirParking(parking1);
+        city.alquilarVehiculoEnParking("P001", 0, tarjeta);
+        city.setPlazaInoperativaEnParking("P001", 0);
+        
+        city.setPlazaOperativaEnParking("P001", 0);
+        
+        assertEquals(EcoRiderPlace.Estado.DISPONIBLE, parking1.getEstadoPlaza(0));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testSetPlazaOperativaEnParkingNoExiste() {
+        city.setPlazaOperativaEnParking("P003", 0);
+    }
+	//********************************************************************
+    
+    //ToString******************************************************
+    @Test
+    public void testToString() {
+        city.anadirParking(parking1);
+        String resultado = city.toString();
+        
+        assertTrue(resultado.contains("EcoRiderCity"));
+        assertTrue(resultado.contains("Valladolid"));
+        assertTrue(resultado.contains("20.0"));
+    }
+    //************************************************************
+    
+    //EQUALS*******************************************************
+    @Test
+    public void testEqualsMismoObjeto() {
+        assertTrue(city.equals(city));
+    }
+    
+    @Test
+    public void testEqualsObjetosIguales() {
+        EcoRiderCity city2 = new EcoRiderCity("Valladolid", 20.0);
+        city.anadirParking(parking1);
+        city2.anadirParking(new EcoRiderParking(parking1));
+        
+        assertTrue(city.equals(city2));
+    }
+    
+    @Test
+    public void testEqualsDiferenteNombre() {
+        EcoRiderCity city2 = new EcoRiderCity("Salamanca", 20.0);
+        assertFalse(city.equals(city2));
+    }
+    
+    @Test
+    public void testEqualsDiferenteFianza() {
+        EcoRiderCity city2 = new EcoRiderCity("Valladolid", 25.0);
+        assertFalse(city.equals(city2));
+    }
+    
+    @Test
+    public void testEqualsDiferenteParkings() {
+        EcoRiderCity city2 = new EcoRiderCity("Valladolid", 20.0);
+        city.anadirParking(parking1);
+        
+        assertFalse(city.equals(city2));
+    }
+    
+    @Test
+    public void testEqualsConNull() {
+        assertFalse(city.equals(null));
+    }
+    
+    @Test
+    public void testEqualsConOtroTipo() {
+    	String otro = "No soy una ciudad";
+        assertFalse(city.equals(otro));
+    }
+    //******************************************************************************
 }
