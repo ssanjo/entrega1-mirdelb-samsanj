@@ -180,8 +180,10 @@ public class EcoRiderParking {
 	}
 
 	public void anadirBloque() {
+		int inicio = getNumeroPlazas();
+	    int fin = inicio + getPlazasPorBloque();
 
-		for(int i = getNumeroPlazas(); i < getNumeroPlazas() + getPlazasPorBloque(); i++) {
+		for(int i = inicio; i < fin; i++) {
 			getPlazas().add(new EcoRiderPlace(i));
 		}
 	}

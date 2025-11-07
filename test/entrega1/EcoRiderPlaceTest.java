@@ -194,7 +194,7 @@ public class EcoRiderPlaceTest {
 	@Test
 	public void testToString() {
 		String resultado = plaza.toString();
-		assertTrue(resultado.contains("La plaza tiene el identificador 1"));
+		assertTrue(resultado.contains("La plaza tiene el identificador 5"));
 		assertTrue(resultado.contains("OCUPADA"));
 	}
 	//************************************************************************
@@ -207,7 +207,7 @@ public class EcoRiderPlaceTest {
 	
 	@Test
 	public void testEqualsObjectObjetosIguales() {
-		EcoRiderPlace plaza2 = new EcoRiderPlace(1);
+		EcoRiderPlace plaza2 = new EcoRiderPlace(5);
 		assertTrue(plaza.equals(plaza2));
 	}
 	

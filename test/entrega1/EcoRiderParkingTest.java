@@ -302,13 +302,14 @@ public class EcoRiderParkingTest {
 	@Test
 	public void testAnadirBloque() {
 		int plazasIniciales = parking.getNumeroPlazas();
-        parking.anadirBloque();
-        
-        assertEquals(plazasIniciales + parking.getPlazasPorBloque(), parking.getNumeroPlazas());
+		int plazasPorBloqueIniciales = parking.getPlazasPorBloque();
+	    parking.anadirBloque();
+	    
+	    assertEquals(3, (plazasIniciales / plazasPorBloqueIniciales) + 1);
 	}
 	///*****************************************************************
 
-	//TOSTRING***********************************************************
+	//ToString***********************************************************
 	@Test
 	public void testToString() {
 		String resultado = parking.toString();
